@@ -11,7 +11,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/ussmith/pom-scraper/data"
+	"github.com/ussmith/pom-patcher/data"
 )
 
 var (
