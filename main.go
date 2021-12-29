@@ -53,12 +53,14 @@ func main() {
 	}
 	//log.Info("Successfully Unmarshalled ./pom.xml")
 
+	found := false
 	var oldVersion data.Entry
 	var propName string
 	isProperty := false
-	for _, x := range Pom.DependencyManagement.Dependencies.Dependency {
+	for i, x := range Pom.DependencyManagement.Dependencies.Dependency {
 		if x.ArtifactId == *dep {
 			log.Infof("Found it, version = %s", x.Version)
+			found = true
 			if strings.HasPrefix(x.Version, "${") {
 				log.Info("It's a property")
 				propName = x.Version[2 : len(x.Version)-1]
@@ -71,7 +73,9 @@ func main() {
 			} else {
 				oldVersion.Value = x.Version
 			}
-			if oldVersion.Value != x.Version {
+
+			//if oldVersion.Value != x.Version {
+			if oldVersion.Value != *ver {
 				//swap them and re-write the pom
 				if isProperty {
 					log.Infof("Changing property %s from %s to %s", propName, Pom.Properties.Elems[propName], *ver)
@@ -87,9 +91,10 @@ func main() {
 				} else {
 					log.Infof("Changing inline version from %s to %s", x.Version, *ver)
 					x.Version = *ver
+					log.Infof("Version now %s", x.Version)
+					Pom.DependencyManagement.Dependencies.Dependency[i] = x
 				}
 
-				//err = writeFile(Pom, xmlFile)
 				err = writeFile(Pom)
 
 				if err != nil {
@@ -97,6 +102,10 @@ func main() {
 				}
 			}
 		}
+	}
+
+	if !found {
+		log.Infof("Dependency %s was not found", *dep)
 	}
 }
 
@@ -118,7 +127,7 @@ func getProperty(pom *data.Project, property string) (data.Entry, error) {
 func writeFile(pom data.Project) error {
 	log.Info("Writing the file here")
 
-	b, err := xml.MarshalIndent(&pom, "  ", "   ")
+	b, err := xml.MarshalIndent(&pom, " ", " ")
 
 	if err != nil {
 		log.WithError(err).Error("Failed to marshall")
