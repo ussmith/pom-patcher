@@ -11,24 +11,30 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/ussmith/crawler"
 	"github.com/ussmith/pom-patcher/data"
 )
 
 var (
-	dep = flag.String("dep", "", "dependency name")
-	ver = flag.String("ver", "", "version")
+	dep   = flag.String("dep", "", "dependency name")
+	ver   = flag.String("ver", "", "version")
+	start = flag.String("start", "", "start directory - the program will crawl from here")
 )
 
 func main() {
 
 	flag.Parse()
 
-	if *dep == "" || *ver == "" {
-		log.Fatal("The specific dependency and version is required")
+	if *dep == "" || *ver == "" || *start == "" {
+		log.Fatal("The specific dependency, version and start directory is required")
 	}
 
 	log.Infof("dependency: %s version: %s", *dep, *ver)
 
+	files := crawler.Find(*start, "pom.xml", crawler.Exact)
+	log.Infof("Found %v files", len(files))
+
+	//for _, f := range files {
 	xmlFile, err := os.Open("./pom.xml")
 
 	if err != nil {
