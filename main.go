@@ -32,10 +32,10 @@ func main() {
 	log.Infof("dependency: %s version: %s", *dep, *ver)
 
 	files := crawler.Find(*start, "pom.xml", crawler.Exact)
-	log.Infof("Found %v files", len(files))
+	log.Debugf("Found %v files", len(files))
 
 	for _, f := range files {
-		log.Infof("Found: %s", f)
+		log.Infof("%s", f)
 		patchFile(f, *dep, *ver)
 	}
 }
@@ -71,13 +71,13 @@ func patchFile(file, dependency, version string) {
 	isProperty := false
 	for i, x := range Pom.DependencyManagement.Dependencies.Dependency {
 		if x.ArtifactId == *dep {
-			log.Infof("Found it, version = %s", x.Version)
+			log.Debugf("Found it, version = %s", x.Version)
 			found = true
 			if strings.HasPrefix(x.Version, "${") {
-				log.Info("It's a property")
+				log.Debugf("It's a property")
 				propName = x.Version[2 : len(x.Version)-1]
 				isProperty = true
-				log.Infof("Getting property %s", propName)
+				log.Debugf("Getting property %s", propName)
 				oldVersion, err = getProperty(&Pom, propName)
 
 				if err != nil {
@@ -91,7 +91,7 @@ func patchFile(file, dependency, version string) {
 			if oldVersion.Value != *ver {
 				//swap them and re-write the pom
 				if isProperty {
-					log.Infof("Changing property %s from %s to %s", propName, Pom.Properties.Elems[propName], *ver)
+					log.Debugf("Changing property %s from %s to %s", propName, Pom.Properties.Elems[propName], *ver)
 					e, ok := Pom.Properties.Elems[propName]
 
 					if !ok {
@@ -102,9 +102,9 @@ func patchFile(file, dependency, version string) {
 
 					Pom.Properties.Elems[propName] = e
 				} else {
-					log.Infof("Changing inline version from %s to %s", x.Version, *ver)
+					log.Debugf("Changing inline version from %s to %s", x.Version, *ver)
 					x.Version = *ver
-					log.Infof("Version now %s", x.Version)
+					log.Debugf("Version now %s", x.Version)
 					Pom.DependencyManagement.Dependencies.Dependency[i] = x
 				}
 
@@ -118,12 +118,12 @@ func patchFile(file, dependency, version string) {
 	}
 
 	if !found {
-		log.Infof("Dependency %s was not found", *dep)
+		log.Debugf("Dependency %s was not found", *dep)
 	}
 }
 
 func getProperty(pom *data.Project, property string) (data.Entry, error) {
-	log.Infof("Getting property %s", property)
+	log.Debugf("Getting property %s", property)
 
 	props := pom.Properties
 
@@ -138,7 +138,7 @@ func getProperty(pom *data.Project, property string) (data.Entry, error) {
 
 //func writeFile(pom data.Project, xmlFile *os.File) error {
 func writeFile(file string, pom data.Project) error {
-	log.Info("Writing the file here")
+	log.Debugf("Writing the file here")
 
 	b, err := xml.MarshalIndent(&pom, " ", " ")
 

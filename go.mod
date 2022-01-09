@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/sirupsen/logrus v1.8.1
-	github.com/ussmith/crawler v0.0.0-20220108210932-036d26d5de29
+	github.com/ussmith/crawler v0.0.0-20220109142816-22a790d62ebb
 )
 
 require (
