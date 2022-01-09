@@ -34,8 +34,14 @@ func main() {
 	files := crawler.Find(*start, "pom.xml", crawler.Exact)
 	log.Infof("Found %v files", len(files))
 
-	//for _, f := range files {
-	xmlFile, err := os.Open("./pom.xml")
+	for _, f := range files {
+		log.Infof("Found: %s", f)
+		patchFile(f, *dep, *ver)
+	}
+}
+
+func patchFile(file, dependency, version string) {
+	xmlFile, err := os.Open(file)
 
 	if err != nil {
 		log.WithError(err).Fatal("Couldn't open file")
@@ -71,6 +77,7 @@ func main() {
 				log.Info("It's a property")
 				propName = x.Version[2 : len(x.Version)-1]
 				isProperty = true
+				log.Infof("Getting property %s", propName)
 				oldVersion, err = getProperty(&Pom, propName)
 
 				if err != nil {
@@ -101,7 +108,7 @@ func main() {
 					Pom.DependencyManagement.Dependencies.Dependency[i] = x
 				}
 
-				err = writeFile(Pom)
+				err = writeFile(file, Pom)
 
 				if err != nil {
 					log.WithError(err).Error("Failed to write out the file")
@@ -130,7 +137,7 @@ func getProperty(pom *data.Project, property string) (data.Entry, error) {
 }
 
 //func writeFile(pom data.Project, xmlFile *os.File) error {
-func writeFile(pom data.Project) error {
+func writeFile(file string, pom data.Project) error {
 	log.Info("Writing the file here")
 
 	b, err := xml.MarshalIndent(&pom, " ", " ")
@@ -140,16 +147,14 @@ func writeFile(pom data.Project) error {
 	}
 
 	b = bytes.Replace(b, []byte("&#xA;"), []byte(""), -1)
-	err = os.Truncate("./pom.xml", 0)
+	err = os.Truncate(file, 0)
 
 	if err != nil {
 		log.WithError(err).Error("Failed to truncate the file")
 		return err
 	}
 
-	err = ioutil.WriteFile("pom.xml", b, 0644)
-
-	//pomFile, err := os.OpenFile("pom.xml", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	err = ioutil.WriteFile(file, b, 0644)
 
 	if err != nil {
 		log.WithError(err).Error("Failed to open the file to replace it")
