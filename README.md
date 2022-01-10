@@ -10,3 +10,5 @@ Usage of ./pom-patcher:
     	dependency name
   -ver string
     	version
+  -start
+      directory to start the crawl
